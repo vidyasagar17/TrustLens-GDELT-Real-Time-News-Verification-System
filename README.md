@@ -2,7 +2,7 @@
 
 Trust-gated news verification using GDELT and a local LLM.
 
-Given a claim, this system queries GDELT for matching articles, filters them through a trusted domain allowlist built from public datasets, scores corroboration across independent outlets, and optionally generates a citation-backed verification report via a local LLaMA model (GGUF via llama.cpp).
+Given a claim, this system queries GDELT for matching articles, filters them through a trusted domain allowlist built from public datasets, scores corroboration across independent outlets, and generates a citation-backed verification report via a local LLaMA model (GGUF via llama.cpp).
 
 ## Data sources
 
