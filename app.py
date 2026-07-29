@@ -3,13 +3,23 @@ from pydantic import BaseModel
 import os
 
 from gdelt_client import search_articles
-from trust_policy import load_trusted_domains
-from verifier import filter_trusted_articles, corroboration_score, verdict_from_score
+from trust_policy import load_trusted_domains, load_unreliable_domains
+from verifier import partition_articles, corroboration_score, verdict_from_score
 from llm_local import LocalLlamaVerifier
 
 app = FastAPI(title="TrustLens-GDELT")
 
 TRUSTED = load_trusted_domains()
+UNRELIABLE = load_unreliable_domains()
+
+def _article_summary(a: dict) -> dict:
+    return {
+        "title": a.get("title"),
+        "url": a.get("url"),
+        "domain": a.get("domain"),
+        "seendate": a.get("seendate"),
+        "language": a.get("language"),
+    }
 
 LLM_MODEL_PATH = os.environ.get("LLM_MODEL_PATH", "").strip()
 LLM_N_CTX = int(os.environ.get("LLM_N_CTX", "4096"))
@@ -34,7 +44,7 @@ class VerifyRequest(BaseModel):
 @app.post("/verify")
 def verify(req: VerifyRequest):
     raw = search_articles(req.claim, max_records=req.max_records)
-    trusted_hits = filter_trusted_articles(raw, TRUSTED)
+    trusted_hits, flagged_unreliable_hits, unclassified_hits = partition_articles(raw, TRUSTED, UNRELIABLE)
 
     score, domains = corroboration_score(trusted_hits)
     verdict_rule = verdict_from_score(score)
@@ -46,16 +56,11 @@ def verify(req: VerifyRequest):
         "unique_trusted_sources": score,
         "trusted_domains": domains,
         "verdict_rule_based": verdict_rule,
-        "top_trusted_articles": [
-            {
-                "title": a.get("title"),
-                "url": a.get("url"),
-                "domain": a.get("domain"),
-                "seendate": a.get("seendate"),
-                "language": a.get("language"),
-            }
-            for a in trusted_hits[:10]
-        ],
+        "top_trusted_articles": [_article_summary(a) for a in trusted_hits[:10]],
+        "flagged_unreliable_hits": len(flagged_unreliable_hits),
+        "top_flagged_unreliable_articles": [_article_summary(a) for a in flagged_unreliable_hits[:10]],
+        "unclassified_hits": len(unclassified_hits),
+        "top_unclassified_articles": [_article_summary(a) for a in unclassified_hits[:10]],
     }
 
     if LLM_LOAD_ERROR:

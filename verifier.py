@@ -10,15 +10,22 @@ def registrable_domain(s: str) -> str:
         return ""
     return f"{ext.domain}.{ext.suffix}".lower()
 
-def filter_trusted_articles(articles: List[Dict], trusted_domains: Set[str]) -> List[Dict]:
-    out = []
+def partition_articles(
+    articles: List[Dict], trusted_domains: Set[str], unreliable_domains: Set[str]
+) -> Tuple[List[Dict], List[Dict], List[Dict]]:
+    """Split GDELT hits into trusted / flagged-unreliable / unclassified, for cross-checking."""
+    trusted, flagged_unreliable, unclassified = [], [], []
     for a in articles:
         url = a.get("url", "") or ""
         dom = a.get("domain", "") or ""
         d = registrable_domain(dom) or registrable_domain(url)
         if d and d in trusted_domains:
-            out.append(a)
-    return out
+            trusted.append(a)
+        elif d and d in unreliable_domains:
+            flagged_unreliable.append(a)
+        else:
+            unclassified.append(a)
+    return trusted, flagged_unreliable, unclassified
 
 def corroboration_score(trusted_articles: List[Dict]) -> Tuple[int, List[str]]:
     domains = {registrable_domain(a.get("domain") or a.get("url") or "") for a in trusted_articles}
