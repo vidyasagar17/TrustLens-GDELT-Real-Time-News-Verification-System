@@ -5,6 +5,7 @@ import tldextract
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 TRUSTED_PATH = DATA_DIR / "trusted_domains.json"
+UNRELIABLE_PATH = DATA_DIR / "unreliable_domains.json"
 
 def _registrable_domain(url_or_domain: str) -> str:
     s = (url_or_domain or "").strip()
@@ -22,6 +23,12 @@ def load_trusted_domains() -> Set[str]:
         )
     obj = json.loads(TRUSTED_PATH.read_text(encoding="utf-8"))
     return set(obj["trusted_domains"])
+
+def load_unreliable_domains() -> Set[str]:
+    if not UNRELIABLE_PATH.exists():
+        return set()
+    obj = json.loads(UNRELIABLE_PATH.read_text(encoding="utf-8"))
+    return set(obj["unreliable_domains"])
 
 def is_trusted_url(url: str, trusted_domains: Set[str]) -> bool:
     d = _registrable_domain(url)
