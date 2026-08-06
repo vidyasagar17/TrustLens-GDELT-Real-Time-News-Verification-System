@@ -2,7 +2,9 @@
 
 Trust-gated news verification using GDELT and a local LLM.
 
-Given a claim, this system queries GDELT for matching articles, filters them through a trusted domain allowlist built from public datasets, scores corroboration across independent outlets, and generates a citation-backed verification report via a local LLaMA model (GGUF via llama.cpp).
+Given a claim, this system queries GDELT for matching articles, filters them through a trusted domain allowlist built from public datasets, classifies whether each article **supports or refutes** the claim, scores corroboration across independent outlets, and generates a citation-backed report via a local LLaMA model (GGUF via llama.cpp).
+
+The verdict is decided by a deterministic rule engine. The LLM only writes prose about a verdict already settled — it never adjudicates. See [HALLUCINATION_MITIGATION.md](HALLUCINATION_MITIGATION.md) for the threat model and design rationale.
 
 ## Data sources
 
@@ -39,7 +41,29 @@ export LLM_N_CTX="4096"
 export LLM_GPU_LAYERS="0"
 ```
 
-The LLM is only invoked when at least 2 independent trusted sources are found. It receives only article metadata (title/domain/date/URL), not full text.
+The LLM is only invoked when the rule engine reaches a directional verdict. It receives the settled verdict plus sanitized evidence, and its output is rejected outright if any bullet is uncited or cites an item that does not exist.
+
+### Stance detection
+
+An NLI model classifies each trusted article as `SUPPORTS`, `REFUTES`, or `DISCUSSES` the claim. This is what separates *"reputable outlets are covering these words"* from *"reputable outlets assert this is true"* — without it, a widely-debunked claim scores highest, because debunkings are themselves trusted-outlet coverage.
+
+Enabled by default; set `STANCE_ENABLED=0` to fall back to coverage-only scoring. Override the model with `STANCE_MODEL` (default `microsoft/deberta-v3-base-mnli`, ~180MB, CPU-friendly).
+
+With stance detection, the system can express verdicts the coverage-only pipeline structurally cannot: `REFUTED`, `LIKELY_REFUTED`, and `DISPUTED`.
+
+## Evaluation
+
+```bash
+python eval/evaluate.py                 # seed set; baseline vs stance, side by side
+python eval/evaluate.py --sweep         # tune verdict thresholds on cached results
+python eval/evaluate.py --dataset averitec.json --limit 200
+```
+
+Reports accuracy, per-class precision/recall/F1, a confusion matrix, and the **critical failure rate** — the share of false claims returned as `SUPPORTED`. For a verification system that is the metric that matters; overall accuracy can hide it completely.
+
+GDELT responses are cached to `eval/.cache/`, so reruns and threshold sweeps cost no extra API calls.
+
+`eval/seed_claims.json` is a hand-authored 12-claim smoke test, **not a benchmark** — it exists so the harness runs on day one. For real numbers, point `--dataset` at [AVeriTeC](https://fever.ai/dataset/averitec.html), FEVER, or LIAR; the loader maps their label vocabularies automatically.
 
 ## Run
 

@@ -6,3 +6,9 @@ tldextract==5.1.2
 datasets==2.21.0
 pyarrow==17.0.0
 llama-cpp-python==0.3.7
+
+# Stance detection (NLI). Optional: the pipeline degrades to coverage-only
+# scoring if these are absent, but verdict quality drops sharply without them.
+transformers==4.44.2
+torch==2.4.1
+sentencepiece==0.2.0

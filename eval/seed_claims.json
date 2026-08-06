@@ -1,0 +1,69 @@
+{
+  "_readme": [
+    "HAND-AUTHORED SMOKE-TEST SET -- this is NOT a published benchmark and carries",
+    "no research authority. It exists so the harness has something to run on day one.",
+    "",
+    "Claims were chosen to be uncontroversially adjudicated: the SUPPORTED items are",
+    "well-documented events, the REFUTED items are misinformation with extensive",
+    "public debunking. The synthetic_control items are invented and should retrieve",
+    "nothing -- they test that the system ABSTAINS rather than confabulates.",
+    "",
+    "For real numbers, run against a proper benchmark:",
+    "  AVeriTeC   https://fever.ai/dataset/averitec.html   (closest fit: real claims + web evidence)",
+    "  FEVER      https://fever.ai/dataset/fever.html",
+    "  LIAR       https://www.cs.ucsb.edu/~william/data/liar_dataset.zip",
+    "Use --dataset to point the harness at any JSON with {claim, label} records."
+  ],
+  "claims": [
+    {
+      "claim": "The World Health Organization declared COVID-19 a pandemic",
+      "label": "SUPPORTED"
+    },
+    {
+      "claim": "Russia launched a full-scale invasion of Ukraine in February 2022",
+      "label": "SUPPORTED"
+    },
+    {
+      "claim": "The United Kingdom formally left the European Union",
+      "label": "SUPPORTED"
+    },
+    {
+      "claim": "NASA's Perseverance rover landed on Mars",
+      "label": "SUPPORTED"
+    },
+    {
+      "claim": "The James Webb Space Telescope was launched into orbit",
+      "label": "SUPPORTED"
+    },
+    {
+      "claim": "5G mobile networks spread the COVID-19 coronavirus",
+      "label": "REFUTED"
+    },
+    {
+      "claim": "Vaccines cause autism in children",
+      "label": "REFUTED"
+    },
+    {
+      "claim": "Drinking bleach cures COVID-19",
+      "label": "REFUTED"
+    },
+    {
+      "claim": "The Earth is flat and space agencies are hiding it",
+      "label": "REFUTED"
+    },
+    {
+      "claim": "Climate change is a hoax invented by scientists",
+      "label": "REFUTED"
+    },
+    {
+      "claim": "The Norwegian parliament voted to replace its national anthem with a sea shanty",
+      "label": "INSUFFICIENT_EVIDENCE",
+      "synthetic_control": true
+    },
+    {
+      "claim": "A municipal council in Rutland renamed every street after varieties of cheese",
+      "label": "INSUFFICIENT_EVIDENCE",
+      "synthetic_control": true
+    }
+  ]
+}

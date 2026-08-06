@@ -3,3 +3,6 @@
 __pycache__/
 *.pyc
 data/
+*.zip
+eval/.cache/
+eval/results.json
